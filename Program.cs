@@ -2,17 +2,10 @@
 
 class Program {
     static void Main() {
-        TTLCache c = new TTLCache(TimeSpan.FromSeconds(10));
-        c.Add("hello", "world", TimeSpan.FromSeconds(100));
-        var ok = c.Get("hello", out string? v);
-        if (!ok) {
-            Console.WriteLine("failed to get cache entry");
-        }
-        Console.WriteLine(v);
-
-        c.Delete("hello");
-
-        ok = c.Get("hello", out v);
+        TTLCache c = new TTLCache(TimeSpan.FromMilliseconds(100));
+        c.Add("hello", "world", TimeSpan.FromSeconds(1));
+        Thread.Sleep(2000);
+        bool ok = c.Get("hello", out _);
         if (ok) {
             Console.WriteLine("failed to delete cache");
         }

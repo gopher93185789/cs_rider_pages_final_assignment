@@ -21,10 +21,10 @@ namespace cache {
 
 
     public class TTLCache {
-        private TimeSpan CheckInterval;
+        private readonly TimeSpan CheckInterval;
         private readonly ConcurrentDictionary<string, CacheEntry> Store;
         private CancellationTokenSource ctx;
-        private Task worker;
+        private readonly Task worker;
 
         public TTLCache(TimeSpan cleanInterval) {
             this.CheckInterval = cleanInterval;
@@ -74,7 +74,7 @@ namespace cache {
             this.Store.Clear();
         }
 
-        private async Task WorkerJob(CancellationToken ctx) {
+        private Task WorkerJob(CancellationToken ctx) {
             Timer t = new Timer(state => {
                 if (ctx.IsCancellationRequested) {
                     return;
@@ -85,6 +85,9 @@ namespace cache {
                     }
                 }
             }, null, 0, (int)this.CheckInterval.TotalMilliseconds);
+
+            t.Dispose();
+            return Task.CompletedTask;
         }
 
         public void StopWorker() {
