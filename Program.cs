@@ -1,9 +1,8 @@
-﻿using System.Net.Http.Headers;
-using cache;
+﻿using cache;
 
 class Program {
-    static void main() {
-        cache.TTLCache ch = new cache.TTLCache(new TimeSpan(seconds: 10));
+    static void Main() {
+        TTLCache ch = new TTLCache(TimeSpan.FromSeconds(10));
         ch.Method();
     }
 }
