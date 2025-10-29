@@ -1,17 +1,10 @@
 ﻿using System.Collections.Concurrent;
-using System.Threading;
 
 namespace cache {
-    class CacheEntry {
-        public string Value { get; set; }
-
-        private DateTime expiry;
-        public bool IsExpired => DateTime.Now >= expiry;
-
-        public CacheEntry(string val, TimeSpan TTL) {
-            this.Value = val;
-            this.expiry = DateTime.Now + TTL;
-        }
+    class CacheEntry(string val, TimeSpan TTL) {
+        public string Value { get; set; } = val;
+        private DateTime expiry = DateTime.UtcNow + TTL;
+        public bool IsExpired => DateTime.UtcNow >= expiry;
 
         public void ExtendTTL(TimeSpan newTTL) {
             this.expiry += newTTL;
@@ -23,7 +16,7 @@ namespace cache {
     public class TTLCache {
         private readonly TimeSpan CheckInterval;
         private readonly ConcurrentDictionary<string, CacheEntry> Store;
-        private CancellationTokenSource ctx;
+        private readonly CancellationTokenSource ctx;
         private readonly Task worker;
 
         public TTLCache(TimeSpan cleanInterval) {
@@ -33,15 +26,16 @@ namespace cache {
             worker = Task.Run(async () => {
                 await this.WorkerJob(ctx.Token);
             }, ctx.Token);
-
         }
 
-        public void Add(string key, string value, TimeSpan ttl) {
+        public bool Add(string key, string value, TimeSpan ttl) {
             var v = new CacheEntry(value, ttl);
             var ok = this.Store.TryAdd(key, v);
             if (!ok) {
-                throw new Exception(message: "failed to add key to store");
+                return false;
             }
+
+            return true;
         }
 
         public bool Get(string key, out string? value) {
@@ -74,20 +68,16 @@ namespace cache {
             this.Store.Clear();
         }
 
-        private Task WorkerJob(CancellationToken ctx) {
-            Timer t = new Timer(state => {
-                if (ctx.IsCancellationRequested) {
-                    return;
-                }
+        private async Task WorkerJob(CancellationToken ctx) {
+            while (!ctx.IsCancellationRequested) {
                 foreach (KeyValuePair<string, CacheEntry> kvp in this.Store) {
                     if (kvp.Value.IsExpired) {
                         this.Store.TryRemove(kvp.Key, out _);
                     }
                 }
-            }, null, 0, (int)this.CheckInterval.TotalMilliseconds);
 
-            t.Dispose();
-            return Task.CompletedTask;
+                await Task.Delay(CheckInterval, ctx);
+            }
         }
 
         public void StopWorker() {
@@ -96,6 +86,7 @@ namespace cache {
 
         ~TTLCache() {
             ctx.Cancel();
+            ctx.Dispose();
         }
 
     }

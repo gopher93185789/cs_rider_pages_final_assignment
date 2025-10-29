@@ -57,23 +57,3 @@ CREATE TABLE IF NOT EXISTS posts_draft_assets (
 );
 
 ```
-
-
-        public TTLCache(TimeSpan cleanInterval) {
-            this.CheckInterval = cleanInterval;
-            this.Store = new ConcurrentDictionary<string, CacheEntry>();
-            ctx = new CancellationTokenSource();
-            worker = Task.Run(async () => {
-                Timer t = new Timer(state => {
-                    if (ctx.IsCancellationRequested) {
-                        return;
-                    }
-                    foreach (KeyValuePair<string, CacheEntry> kvp in this.Store) {
-                        if (kvp.Value.IsExpired) {
-                            this.Store.TryRemove(kvp.Key, out _);
-                        }
-                    }
-                }, null, 0, (int)this.CheckInterval.TotalMilliseconds);
-            }, ctx.Token);
-
-        }
