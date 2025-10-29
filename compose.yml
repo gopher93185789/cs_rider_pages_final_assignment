@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: blog_database
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: john_xina
+      POSTGRES_PASSWORD: "1234567"
+      POSTGRES_DB: beijing
+    ports:
+      - "3100:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  postgres_data:
