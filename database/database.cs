@@ -1,5 +1,9 @@
-﻿namespace database;
+﻿namespace database
+{
+    public class DatabaseContext
+    {
 
-public class Class1 {
+    }
 
 }
+
