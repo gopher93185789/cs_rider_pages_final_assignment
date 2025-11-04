@@ -2,8 +2,8 @@
 
 ## Req
 
-- [ ] In memory key value store with expiry
-- [ ] auth - login / logout for admins only
+- [x] In memory key value store with expiry
+- [x] auth - login / logout for admins only
   - [ ] auth token in cookie
 - [ ] Blog posts
   - [ ] user role can read posts and add comments but they are not visible to other users yet

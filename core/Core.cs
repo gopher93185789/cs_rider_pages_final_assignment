@@ -2,6 +2,7 @@
 using jwt;
 using BCrypt.Net;
 using Microsoft.AspNetCore.Identity;
+using cache;
 
 namespace core {
     public class UserObject {
@@ -20,11 +21,13 @@ namespace core {
         private readonly string dsn;
         private readonly NpgsqlConnection conn;
         private readonly JwtCtx jwt;
+        private readonly TTLCache cache;
 
-        public BlogCtx(string dsn, JwtCtx jwt) {
+        public BlogCtx(string dsn, JwtCtx jwt, TTLCache cache) {
             this.dsn = dsn;
             this.conn = new NpgsqlConnection(dsn);
             this.jwt = jwt;
+            this.cache = cache;
         }
 
         public bool RegisterUser(string username, string password, out string err) {
@@ -114,6 +117,16 @@ namespace core {
             }
         }
 
+        public bool Logout(string token) {
+            string uid;
+            var ok = jwt.Validate(token, out uid);
+            if (!ok) {
+                return false;
+            }
+
+            cache.Add(token, uid, TimeSpan.FromHours(1));
+            return true;
+        }
         public bool VerifySession(string token, out string? err, out string? uid) {
             bool ok = jwt.Validate(token, out uid);
             if (!ok) {
@@ -126,6 +139,6 @@ namespace core {
             return true;
         }
 
-        
+
     }
 }
