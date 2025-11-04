@@ -100,3 +100,5 @@ ScaffoldingReadMe.txt
 *.sql
 *.mdf
 *.ldf
+
+.DS_store
