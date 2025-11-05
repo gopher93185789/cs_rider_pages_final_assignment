@@ -97,7 +97,6 @@ ScaffoldingReadMe.txt
 # Others
 *.dbmdl
 *.bak
-*.sql
 *.mdf
 *.ldf
 
