@@ -13,6 +13,13 @@ CREATE TABLE IF NOT EXISTS posts (
     updated_at TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS comments (
+    id SERIAL PRIMARY KEY,
+    post_id INT REFERENCES posts(id) ON DELETE CASCADE,
+    comment TEXT,
+    status VARCHAR(16) CHECK (status IN ('pending', 'approved'))
+);
+
 CREATE TABLE IF NOT EXISTS posts_drafts (
     id SERIAL PRIMARY KEY,
     post_id INT REFERENCES posts(id) ON DELETE CASCADE,

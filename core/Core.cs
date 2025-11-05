@@ -20,28 +20,28 @@ namespace core {
 
 
     public class Post {
-        public required string PostID;
-        public required string Title;
-        public DateTime CreatedAt;
-        public DateTime UpdatedAt;
+        public required string PostID { get; set; }
+        public required string Title { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
         public class Draft {
-            public required string DraftId;
-            public bool IsDeleted;
-            public string? DraftState;
-            public string? Body;
-            public DateTime CreatedAt;
-            public DateTime UpdatedAt;
+            public required string DraftId { get; set; }
+            public bool IsDeleted { get; set; }
+            public string? DraftState { get; set; }
+            public string? Body { get; set; }
+            public DateTime CreatedAt { get; set; }
+            public DateTime UpdatedAt { get; set; }
 
-            public string[]? Tags;
+            public string[]? Tags { get; set; }
 
             public class Asset {
-                public string? AssetType;
-                public byte[]? Data;
+                public string? AssetType { get; set; }
+                public byte[]? Data { get; set; }
             }
         }
-
     }
+
 
 
     public class BlogCtx {
