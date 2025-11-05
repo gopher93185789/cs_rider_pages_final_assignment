@@ -6,6 +6,7 @@ WITH posts AS (
 comments_agg AS (
     SELECT 
         post_id,
+        ARRAY_AGG(id) AS comment_ids,
         ARRAY_AGG(comment) AS comments,
         ARRAY_AGG(status) AS comment_status
     FROM comments
@@ -50,6 +51,7 @@ SELECT
     p.publish_date,
     p.created_at,
     p.updated_at,
+    c.comment_ids,
     c.comments,
     c.comment_status,
     d.draft_ids,
@@ -59,6 +61,7 @@ SELECT
     d.draft_created,
     d.draft_updated,
     t.draft_tags,
+    a.draft_ids,
     a.asset_types,
     a.asset_data
 FROM posts p
