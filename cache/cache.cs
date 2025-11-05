@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.ComponentModel;
 
 namespace cache {
     class CacheEntry(string val, TimeSpan TTL) {
@@ -12,8 +13,19 @@ namespace cache {
 
     }
 
+    public interface ITTLCache {
 
-    public class TTLCache {
+        bool Add(string key, string value, TimeSpan ttl);
+        bool Get(string key, out string? value);
+        bool Delete(string key);
+        bool ExtendTTL(string key, TimeSpan newTTL);
+        void ClearCache();
+        void StopWorker();
+
+    }
+
+
+    public class TTLCache : ITTLCache {
         private readonly TimeSpan CheckInterval;
         private readonly ConcurrentDictionary<string, CacheEntry> Store;
         private readonly CancellationTokenSource ctx;

@@ -17,6 +17,33 @@ namespace core {
         }
     }
 
+
+
+    public class Post {
+        public required string PostID;
+        public required string Title;
+        public DateTime CreatedAt;
+        public DateTime UpdatedAt;
+
+        public class Draft {
+            public required string DraftId;
+            public bool IsDeleted;
+            public string? DraftState;
+            public string? Body;
+            public DateTime CreatedAt;
+            public DateTime UpdatedAt;
+
+            public string[]? Tags;
+
+            public class Asset {
+                public string? AssetType;
+                public byte[]? Data;
+            }
+        }
+
+    }
+
+
     public class BlogCtx {
         private readonly string dsn;
         private readonly NpgsqlConnection conn;
@@ -139,6 +166,11 @@ namespace core {
             return true;
         }
 
+        public bool GetPosts(out string? err, out Post[]? posts) {
+            err = null;
+            posts = null;
+            return false;
+        }
 
     }
 }
