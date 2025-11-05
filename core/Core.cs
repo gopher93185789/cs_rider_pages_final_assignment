@@ -376,5 +376,6 @@ LEFT JOIN draft_assets_agg a ON p.id = a.post_id;
 
         }
 
+
     }
 }
