@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS posts (
     id SERIAL PRIMARY KEY,
+    created_by INT REFERENCES users(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     publish_date TIMESTAMP DEFAULT NOW(),
     created_at TIMESTAMP DEFAULT NOW(),
@@ -31,13 +32,13 @@ CREATE TABLE IF NOT EXISTS posts_drafts (
 );
 
 CREATE TABLE IF NOT EXISTS posts_draft_tags (
-    post_draft_id INT REFERNCES posts_drafts(id) ON DELETE CASCADE
+    post_draft_id INT REFERENCES posts_drafts(id) ON DELETE CASCADE,
     tag_name VARCHAR(50)
 );
 
 CREATE TABLE IF NOT EXISTS posts_draft_assets (
     id SERIAL PRIMARY KEY,
-    post_draft_id INT REFERNCES posts_drafts(id) ON DELETE CASCADE,
+    post_draft_id INT REFERENCES posts_drafts(id) ON DELETE CASCADE,
     asset_type VARCHAR(10) NOT NULL,
     data BYTEA
 );

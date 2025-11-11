@@ -126,7 +126,7 @@ namespace Core {
             return true;
         }
         public bool VerifySession(string token, out string? err, out string role, out string? uid) {
-            bool ok = jwt.Validate(token,out role, out uid);
+            bool ok = jwt.Validate(token, out role, out uid);
             if (!ok) {
                 err = "token is invalid";
                 uid = null;
@@ -137,8 +137,8 @@ namespace Core {
             return true;
         }
 
-        public bool GetPosts(out string? err, out string? postsJson) {
-            if (this.cache.Get("posts", out postsJson)) {
+        public bool AdminGetPosts(string userid, out string? err, out string? postsJson) {
+            if (this.cache.Get("admin_posts" + userid, out postsJson)) {
                 err = "";
                 return true;
             }
@@ -166,7 +166,8 @@ namespace Core {
             byte[][]? assetData = null;
 
             try {
-                cmd = new NpgsqlCommand(SqlQueries.GetPostSql, conn);
+                cmd = new NpgsqlCommand(SqlQueries.AdminGetPostSql, conn);
+                cmd.Parameters.AddWithValue("user_id", userid);
                 reader = cmd.ExecuteReader();
 
                 var posts = new List<Post>();
@@ -241,7 +242,7 @@ namespace Core {
 
                 err = "";
                 postsJson = JsonSerializer.Serialize(posts);
-                this.cache.Add("posts", postsJson, TimeSpan.FromSeconds(60));
+                this.cache.Add("admin_posts" + userid, postsJson, TimeSpan.FromSeconds(60));
                 return true;
             }
             catch (Exception e) {
@@ -256,7 +257,126 @@ namespace Core {
 
         }
 
-        public bool AddCommentOnPost(string postID, string comment, out string err) {
+        public bool UserGetPosts(out string? err, out string? postsJson) {
+            if (this.cache.Get("posts", out postsJson)) {
+                err = "";
+                return true;
+            }
+
+            NpgsqlCommand? cmd = null;
+            NpgsqlDataReader? reader = null;
+
+            string? id = null;
+            string? title = null;
+            DateTime? publishDate = null;
+            DateTime? createdAt = null;
+            DateTime? updatedAt = null;
+            string[]? commentIds = null;
+            string[]? comments = null;
+            string[]? commentStatus = null;
+            string[]? draftIds = null;
+            bool[]? isDeleted = null;
+            string[]? draftStates = null;
+            string[]? draftBodies = null;
+            DateTime[]? draftCreated = null;
+            DateTime[]? draftUpdated = null;
+            string[]? assetDraftIds = null;
+            string[]? draftTags = null;
+            string[]? assetTypes = null;
+            byte[][]? assetData = null;
+
+            try {
+                cmd = new NpgsqlCommand(SqlQueries.UserGetPostSql, conn);
+
+                reader = cmd.ExecuteReader();
+
+                var posts = new List<Post>();
+                while (reader.Read()) {
+                    id = reader.GetString(0);
+                    title = reader.GetString(1);
+                    publishDate = reader.GetDateTime(2);
+                    createdAt = reader.GetDateTime(3);
+                    updatedAt = reader.GetDateTime(4);
+                    commentIds = reader.GetFieldValue<string[]>(5);
+                    comments = reader.GetFieldValue<string[]>(6);
+                    commentStatus = reader.GetFieldValue<string[]>(7);
+                    draftIds = reader.GetFieldValue<string[]>(8);
+                    isDeleted = reader.GetFieldValue<bool[]>(9);
+                    draftStates = reader.GetFieldValue<string[]>(10);
+                    draftBodies = reader.GetFieldValue<string[]>(11);
+                    draftCreated = reader.GetFieldValue<DateTime[]>(12);
+                    draftUpdated = reader.GetFieldValue<DateTime[]>(13);
+                    draftTags = reader.GetFieldValue<string[]>(14);
+                    assetDraftIds = reader.GetFieldValue<string[]>(15);
+                    assetTypes = reader.GetFieldValue<string[]>(16);
+                    assetData = reader.GetFieldValue<byte[][]>(17);
+
+                    var p = new Post();
+                    p.PostID = id;
+                    p.Title = title;
+                    p.CreatedAt = createdAt;
+                    p.UpdatedAt = updatedAt;
+
+                    p.Drafts = new List<Draft>();
+                    p.Comments = new List<Comment>();
+
+                    for (int i = 0; i < commentIds.Length; i++) {
+                        var c = new Comment();
+                        c.commentId = commentIds[i];
+                        c.comment = comments[i];
+                        c.status = commentStatus[i];
+
+                        p.Comments.Add(c);
+                    }
+
+
+                    for (int i = 0; i < draftIds.Length; i++) {
+                        var d = new Draft();
+                        d.DraftId = draftIds[i];
+                        d.IsDeleted = isDeleted[i];
+                        d.DraftState = draftStates[i];
+                        d.Body = draftBodies[i];
+                        d.CreatedAt = draftCreated[i];
+                        d.UpdatedAt = draftUpdated[i];
+                        d.UpdatedAt = draftUpdated[i];
+
+                        d.Tags = draftTags[i].Split(",");
+
+                        d.assets = new List<Asset>();
+
+                        for (int j = 0; j < assetDraftIds.Length; j++) {
+                            if (assetDraftIds[j] == draftIds[i]) {
+                                var a = new Asset();
+                                a.AssetType = assetTypes[j];
+                                a.Data = assetData[j];
+                                d.assets.Add(a);
+                            }
+                        }
+
+                        p.Drafts.Add(d);
+                    }
+
+                    posts.Add(p);
+                }
+
+
+                err = "";
+                postsJson = JsonSerializer.Serialize(posts);
+                this.cache.Add("posts", postsJson, TimeSpan.FromMinutes(5));
+                return true;
+            }
+            catch (Exception e) {
+                err = e.Message;
+                postsJson = "";
+                return false;
+            }
+            finally {
+                reader?.Close();
+                cmd?.Dispose();
+            }
+
+        }
+        public bool UserAddCommentOnPost(string postID, string comment, out string err) {
 
             if (postID == "") {
                 err = "please provide a valid postid";
@@ -315,6 +435,8 @@ namespace Core {
                 cmd?.Dispose();
             }
         }
+
+
 
 
     }
