@@ -1,7 +1,6 @@
 ﻿using Npgsql;
 using jwt;
-using BCrypt.Net;
-using Microsoft.AspNetCore.Identity;
+using System.Text.Json;
 using cache;
 using Types;
 
@@ -138,7 +137,12 @@ namespace Core {
             return true;
         }
 
-        public bool GetPosts(out string? err, out List<Post>? posts) {
+        public bool GetPosts(out string? err, out string? postsJson) {
+            if (this.cache.Get("posts", out postsJson)) {
+                err = "";
+                return true;
+            }
+
             NpgsqlCommand? cmd = null;
             NpgsqlDataReader? reader = null;
 
@@ -165,7 +169,7 @@ namespace Core {
                 cmd = new NpgsqlCommand(SqlQueries.GetPostSql, conn);
                 reader = cmd.ExecuteReader();
 
-                posts = new List<Post>();
+                var posts = new List<Post>();
                 while (reader.Read()) {
                     id = reader.GetString(0);
                     title = reader.GetString(1);
@@ -236,11 +240,13 @@ namespace Core {
 
 
                 err = "";
+                postsJson = JsonSerializer.Serialize(posts);
+                this.cache.Add("posts", postsJson, TimeSpan.FromSeconds(60));
                 return true;
             }
             catch (Exception e) {
                 err = e.Message;
-                posts = null;
+                postsJson = "";
                 return false;
             }
             finally {
@@ -250,10 +256,57 @@ namespace Core {
 
         }
 
+        public bool AddCommentOnPost(string postID, string comment, out string err) {
+
+            if (postID == "") {
+                err = "please provide a valid postid";
+                return false;
+            }
+
+            if (comment == "" || comment.Length > 500) {
+                err = "please provide a comment that falls withing the range (1-500 characters)";
+                return false;
+            }
+            try {
+                var cmd = new NpgsqlCommand(SqlQueries.CreateCommentOnPost, conn);
+                cmd.Parameters.AddWithValue("post_id", postID);
+                cmd.Parameters.AddWithValue("comment", comment);
+                cmd.Parameters.AddWithValue("status", "pending");
+                cmd.ExecuteNonQuery();
+
+                err = "";
+                return true;
+            }
+            catch (Exception e) {
+                Console.WriteLine(e.Message);
+                err = "internal server error, please try again later";
+                return false;
+            }
+        }
+
+        public bool AdminUpdateCommentStatus(string commentID, bool isApproved, out string err) {
+            if (commentID == "") {
+                err = "please provide a valid commentid";
+                return false;
+            }
+            
+            try {
+                var cmd = new NpgsqlCommand(SqlQueries.UpdateCommentStatus, conn);
+
+                cmd.Parameters.AddWithValue("status", isApproved ? "approved" : "pending");
+                cmd.Parameters.AddWithValue("comment_id", commentID);
+                cmd.ExecuteNonQuery();
+
+                err = "";
+                return true;
+            }
+            catch (Exception e) {
+                Console.WriteLine(e.Message);
+                err = "internal server error, please try again later";
+                return false;
+            }
+        }
+
 
     }
-
-
-
-
 }

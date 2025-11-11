@@ -1,3 +1,5 @@
+using System.Dynamic;
+
 namespace Types {
     public class UserObject {
         public readonly string username;
@@ -52,8 +54,8 @@ namespace Types {
 WITH posts AS (
     SELECT id, title, publish_date, created_at, updated_at 
     FROM posts
+    WHERE publish_date <= now()
 ),
-
 comments_agg AS (
     SELECT 
         post_id,
@@ -121,6 +123,16 @@ LEFT JOIN drafts_agg d ON p.id = d.post_id
 LEFT JOIN draft_tags_agg t ON p.id = t.post_id
 LEFT JOIN draft_assets_agg a ON p.id = a.post_id;
 
+        ";
+
+
+        public const string CreateCommentOnPost = @"
+        INSERT INTO comments (post_id, comment, status) 
+        VALUES (@post_id, @comment, @status);
+        ";
+        public const string UpdateCommentStatus = @"
+  UPDATE comments SET status = @status 
+  WHERE id = @comment_id;
         ";
     }
 
