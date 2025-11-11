@@ -95,7 +95,7 @@ namespace Core {
                 }
 
 
-                string token = jwt.GenerateToken(uid, TimeSpan.FromHours(1));
+                string token = jwt.GenerateToken(uid, role, TimeSpan.FromHours(1));
 
                 var ust = new UserObject(username, role, token);
 
@@ -117,7 +117,7 @@ namespace Core {
 
         public bool Logout(string token) {
             string uid;
-            var ok = jwt.Validate(token, out uid);
+            var ok = jwt.Validate(token, out _, out uid);
             if (!ok) {
                 return false;
             }
@@ -125,8 +125,8 @@ namespace Core {
             cache.Add(token, uid, TimeSpan.FromHours(1));
             return true;
         }
-        public bool VerifySession(string token, out string? err, out string? uid) {
-            bool ok = jwt.Validate(token, out uid);
+        public bool VerifySession(string token, out string? err, out string role, out string? uid) {
+            bool ok = jwt.Validate(token,out role, out uid);
             if (!ok) {
                 err = "token is invalid";
                 uid = null;
@@ -267,8 +267,9 @@ namespace Core {
                 err = "please provide a comment that falls withing the range (1-500 characters)";
                 return false;
             }
+            NpgsqlCommand? cmd = null;
             try {
-                var cmd = new NpgsqlCommand(SqlQueries.CreateCommentOnPost, conn);
+                cmd = new NpgsqlCommand(SqlQueries.CreateCommentOnPost, conn);
                 cmd.Parameters.AddWithValue("post_id", postID);
                 cmd.Parameters.AddWithValue("comment", comment);
                 cmd.Parameters.AddWithValue("status", "pending");
@@ -282,6 +283,9 @@ namespace Core {
                 err = "internal server error, please try again later";
                 return false;
             }
+            finally {
+                cmd?.Dispose();
+            }
         }
 
         public bool AdminUpdateCommentStatus(string commentID, bool isApproved, out string err) {
@@ -289,9 +293,11 @@ namespace Core {
                 err = "please provide a valid commentid";
                 return false;
             }
-            
+
+            NpgsqlCommand? cmd = null;
+
             try {
-                var cmd = new NpgsqlCommand(SqlQueries.UpdateCommentStatus, conn);
+                cmd = new NpgsqlCommand(SqlQueries.UpdateCommentStatus, conn);
 
                 cmd.Parameters.AddWithValue("status", isApproved ? "approved" : "pending");
                 cmd.Parameters.AddWithValue("comment_id", commentID);
@@ -304,6 +310,9 @@ namespace Core {
                 Console.WriteLine(e.Message);
                 err = "internal server error, please try again later";
                 return false;
+            }
+            finally {
+                cmd?.Dispose();
             }
         }
 

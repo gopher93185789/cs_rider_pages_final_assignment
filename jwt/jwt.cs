@@ -8,13 +8,14 @@ namespace jwt {
             this.secret = secret;
         }
 
-        public string GenerateToken(string userid, TimeSpan expiry) {
+        public string GenerateToken(string userid, string role, TimeSpan expiry) {
             
             return "";
         }
 
-        public bool Validate(string token, out string userid) {
+        public bool Validate(string token, out string role, out string userid) {
             userid = "";
+            role = "";
             return true;
         }
     }
