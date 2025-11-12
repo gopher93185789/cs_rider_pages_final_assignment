@@ -126,6 +126,7 @@ namespace Core {
             return true;
         }
         public bool VerifySession(string token, out string? err, out string role, out string? uid) {
+            err = null;
             bool ok = jwt.Validate(token, out role, out uid);
             if (!ok) {
                 err = "token is invalid";
@@ -133,13 +134,13 @@ namespace Core {
                 return false;
             }
 
-            err = null;
             return true;
         }
 
         public bool AdminGetPosts(string userid, out string? err, out string? postsJson) {
+            err = null;
+
             if (this.cache.Get("admin_posts" + userid, out postsJson)) {
-                err = "";
                 return true;
             }
 
@@ -240,7 +241,6 @@ namespace Core {
                 }
 
 
-                err = "";
                 postsJson = JsonSerializer.Serialize(posts);
                 this.cache.Add("admin_posts" + userid, postsJson, TimeSpan.FromSeconds(60));
                 return true;
@@ -258,8 +258,8 @@ namespace Core {
         }
 
         public bool UserGetPosts(out string? err, out string? postsJson) {
+            err = null;
             if (this.cache.Get("posts", out postsJson)) {
-                err = "";
                 return true;
             }
 
@@ -359,8 +359,6 @@ namespace Core {
                     posts.Add(p);
                 }
 
-
-                err = "";
                 postsJson = JsonSerializer.Serialize(posts);
                 this.cache.Add("posts", postsJson, TimeSpan.FromMinutes(5));
                 return true;
@@ -376,17 +374,19 @@ namespace Core {
             }
 
         }
-        public bool UserAddCommentOnPost(string postID, string comment, out string err) {
+        public bool UserAddCommentOnPost(string postID, string comment, out string? err) {
+            err = null;
 
-            if (postID == "") {
+            if (string.IsNullOrWhiteSpace(postID)) {
                 err = "please provide a valid postid";
                 return false;
             }
 
-            if (comment == "" || comment.Length > 500) {
+            if (string.IsNullOrWhiteSpace(comment) || comment.Length > 500) {
                 err = "please provide a comment that falls withing the range (1-500 characters)";
                 return false;
             }
+
             NpgsqlCommand? cmd = null;
             try {
                 cmd = new NpgsqlCommand(SqlQueries.CreateCommentOnPost, conn);
@@ -395,7 +395,6 @@ namespace Core {
                 cmd.Parameters.AddWithValue("status", "pending");
                 cmd.ExecuteNonQuery();
 
-                err = "";
                 return true;
             }
             catch (Exception e) {
@@ -408,8 +407,10 @@ namespace Core {
             }
         }
 
-        public bool AdminUpdateCommentStatus(string commentID, bool isApproved, out string err) {
-            if (commentID == "") {
+        public bool AdminUpdateCommentStatus(string commentID, bool isApproved, out string? err) {
+            err = null;
+
+            if (string.IsNullOrWhiteSpace(commentID)) {
                 err = "please provide a valid commentid";
                 return false;
             }
@@ -423,7 +424,44 @@ namespace Core {
                 cmd.Parameters.AddWithValue("comment_id", commentID);
                 cmd.ExecuteNonQuery();
 
-                err = "";
+                return true;
+            }
+            catch (Exception e) {
+                Console.WriteLine(e.Message);
+                err = "internal server error, please try again later";
+                return false;
+            }
+            finally {
+                cmd?.Dispose();
+            }
+        }
+
+        public bool AdminCreatePost(string userID, string title, DateTime publishDate, out string? err, out string? postID) {
+            err = null;
+            postID = null;
+
+            if (string.IsNullOrWhiteSpace(userID)) {
+                err = "please provide a valid userid";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(title)) {
+                err = "please provide a valid userid";
+                return false;
+            }
+
+            NpgsqlCommand? cmd = null;
+
+            try {
+                cmd = new NpgsqlCommand(SqlQueries.CreatePost, conn);
+
+                cmd.Parameters.AddWithValue("created_by", userID);
+                cmd.Parameters.AddWithValue("title", title);
+                cmd.Parameters.AddWithValue("publish_date", publishDate);
+                var id = cmd.ExecuteScalar();
+
+                this.cache.Delete("admin_posts" + userID);
+                postID = id?.ToString();
                 return true;
             }
             catch (Exception e) {
@@ -437,7 +475,87 @@ namespace Core {
         }
 
 
+        public bool AdminCreatDraftOnPost(string userID, string postId, bool isPublished, string body, List<string> tags, List<Asset> assets, out string? err) {
+            err = null;
+
+            if (string.IsNullOrWhiteSpace(userID)) {
+                err = "please provide a valid userid";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(postId)) {
+                err = "please provide a valid postid";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(body)) {
+                err = "please provide a valid body";
+                return false;
+            }
+
+            NpgsqlCommand? cmd = null;
+            NpgsqlTransaction? transaction = null;
+
+            try {
+                transaction = conn.BeginTransaction();
+
+                cmd = new NpgsqlCommand(SqlQueries.CreateDraftOnPostSql, conn, transaction);
+                cmd.Parameters.AddWithValue("post_id", int.Parse(postId));
+                cmd.Parameters.AddWithValue("state", isPublished ? "published" : "draft");
+                cmd.Parameters.AddWithValue("body", body);
+
+                var draftId = cmd.ExecuteScalar();
+                if (draftId == null) {
+                    transaction.Rollback();
+                    err = "failed to create draft";
+                    return false;
+                }
+
+                int draftIdInt = Convert.ToInt32(draftId);
+
+                if (tags != null && tags.Count > 0) {
+                    foreach (var tag in tags) {
+                        if (!string.IsNullOrWhiteSpace(tag)) {
+                            cmd = new NpgsqlCommand(SqlQueries.CreateDraftTagSql, conn, transaction);
+                            cmd.Parameters.AddWithValue("post_draft_id", draftIdInt);
+                            cmd.Parameters.AddWithValue("tag_name", tag);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+
+                if (assets != null && assets.Count > 0) {
+                    foreach (var asset in assets) {
+                        if (asset.Data != null && !string.IsNullOrWhiteSpace(asset.AssetType)) {
+                            cmd = new NpgsqlCommand(SqlQueries.CreateDraftAssetSql, conn, transaction);
+                            cmd.Parameters.AddWithValue("post_draft_id", draftIdInt);
+                            cmd.Parameters.AddWithValue("asset_type", asset.AssetType);
+                            cmd.Parameters.AddWithValue("data", asset.Data);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+
+                transaction.Commit();
 
 
+                this.cache.Delete("admin_posts" + userID);
+                if (isPublished) {
+                    this.cache.Delete("posts");
+                }
+
+                return true;
+            }
+            catch (Exception e) {
+                transaction?.Rollback();
+                Console.WriteLine(e.Message);
+                err = "internal server error, please try again later";
+                return false;
+            }
+            finally {
+                cmd?.Dispose();
+                transaction?.Dispose();
+            }
+        }
     }
 }

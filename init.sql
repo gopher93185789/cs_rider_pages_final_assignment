@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS comments (
 CREATE TABLE IF NOT EXISTS posts_drafts (
     id SERIAL PRIMARY KEY,
     post_id INT REFERENCES posts(id) ON DELETE CASCADE,
-    is_deleted BOOLEAN,
+    is_deleted BOOLEAN DEFAULT false,
     state VARCHAR(50) CHECK (state IN ('draft', 'published')),
     body TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),

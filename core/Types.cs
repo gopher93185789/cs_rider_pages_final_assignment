@@ -207,6 +207,25 @@ namespace Types {
         UPDATE comments SET status = @status 
         WHERE id = @comment_id;
         ";
+
+        public const string CreatePost = @"
+        INSERT INTO posts (created_by, title, publish_date, created_at, updated_at) 
+        VALUES (@created_by, @title, @publish_date, NOW(), NOW())
+        RETURNING id;
+        ";
+
+        public const string CreateDraftOnPostSql = @"
+        INSERT INTO posts_drafts (post_id, is_deleted, state, body, created_at, updated_at) 
+        VALUES (@post_id, false, @state, @body, NOW(), NOW())
+        RETURNING id";
+
+        public const string CreateDraftTagSql = @"
+        INSERT INTO posts_draft_tags (post_draft_id, tag_name) 
+        VALUES (@post_draft_id, @tag_name)";
+
+        public const string CreateDraftAssetSql = @"
+        INSERT INTO posts_draft_assets (post_draft_id, asset_type, data) 
+        VALUES (@post_draft_id, @asset_type, @data)";
     }
 
 }
