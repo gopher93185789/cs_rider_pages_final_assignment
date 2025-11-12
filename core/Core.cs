@@ -257,7 +257,7 @@ namespace Core {
 
         }
 
-        public bool UserGetPosts(out string? err, out string? postsJson) {
+        public bool UserGetPosts(string? searchQuery, out string? err, out string? postsJson) {
             err = null;
             if (this.cache.Get("posts", out postsJson)) {
                 return true;
@@ -286,8 +286,14 @@ namespace Core {
             byte[][]? assetData = null;
 
             try {
-                cmd = new NpgsqlCommand(SqlQueries.UserGetPostSql, conn);
-
+                if (!string.IsNullOrWhiteSpace(searchQuery)) {
+                    cmd = new NpgsqlCommand(SqlQueries.SearchSql, conn);
+                    cmd.Parameters.AddWithValue("lang", "english");
+                    cmd.Parameters.AddWithValue("query", searchQuery);
+                }
+                else {
+                    cmd = new NpgsqlCommand(SqlQueries.UserGetPostSql, conn);
+                }
                 reader = cmd.ExecuteReader();
 
                 var posts = new List<Post>();

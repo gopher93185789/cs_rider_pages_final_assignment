@@ -16,5 +16,5 @@
     - [x] posts scheduler
     - [ ] admin can set when a post will be posted/visible to users
     - [ ] users can filter posts by tags
-- [ ] full text search posts (can be done in postgres)
+- [x] full text search posts (can be done in postgres)
 - [ ] navigate through posts useg slugs /posts/:id
