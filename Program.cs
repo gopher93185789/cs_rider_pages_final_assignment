@@ -1,20 +1,18 @@
-﻿using cache;
+﻿using jwt;
 
 class Program {
     static void Main() {
-        var c = new TTLCache(TimeSpan.FromMilliseconds(100));
-        var ok = c.Add("hello", "world", TimeSpan.FromSeconds(1));
+        var c = new JwtCtx("dibvihsbvibvihebv");
+        string tken = c.GenerateToken("usr", "rizzman", TimeSpan.FromHours(1));
+        Console.WriteLine(tken);
+
+        var ok = c.Validate(tken, out string role, out string uid);
         if (!ok) {
-            Console.WriteLine("failed to add key to cache");
+            Console.WriteLine("invalid");
             return;
         }
 
-        ok = c.Get("hello", out string? v);
-        if (!ok) {
-            Console.WriteLine("failed to delete cache");
-            return;
-        }
-
-        Console.WriteLine(v);
+        Console.WriteLine(role);
+        Console.WriteLine(uid);
     }
 }
