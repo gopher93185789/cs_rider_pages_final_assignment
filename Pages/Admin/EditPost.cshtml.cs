@@ -26,13 +26,14 @@ public class EditPostModel : PageModel {
 
     [BindProperty]
     public bool IsPublished { get; set; } = true;
-    
+
     [BindProperty]
     public string? DraftId { get; set; }
-    
+
     public Post? ExistingPost { get; set; }
     public string? ErrorMessage { get; set; }
-    public string? UserId { get; set; }    public EditPostModel(BlogCtx ctx) {
+    public string? UserId { get; set; }
+    public EditPostModel(BlogCtx ctx) {
         blogCtx = ctx;
     }
 
@@ -63,7 +64,7 @@ public class EditPostModel : PageModel {
                     // Load the published draft if it exists, otherwise the latest draft
                     var publishedDraft = ExistingPost.Drafts?.FirstOrDefault(d => d.DraftState == "published" && !d.IsDeleted);
                     var latestDraft = publishedDraft ?? ExistingPost.Drafts?.OrderByDescending(d => d.UpdatedAt).FirstOrDefault();
-                    
+
                     if (latestDraft != null) {
                         DraftId = latestDraft.DraftId;
                         Body = latestDraft.Body;
@@ -129,7 +130,7 @@ public class EditPostModel : PageModel {
                 ErrorMessage = updateErr;
                 return Page();
             }
-            
+
             // Update existing draft instead of creating a new one
             if (!string.IsNullOrEmpty(DraftId)) {
                 var draftSuccess = blogCtx.AdminUpdateDraft(userId!, PostId, DraftId, IsPublished, Body, tagsList, out string? draftErr);
@@ -146,6 +147,7 @@ public class EditPostModel : PageModel {
                     return Page();
                 }
             }
-        }        return Redirect("/Admin");
+        }
+        return Redirect("/Admin");
     }
 }

@@ -637,7 +637,7 @@ namespace Core {
                 transaction = conn.BeginTransaction();
 
                 Console.WriteLine($"AdminUpdateDraft: Updating draft {draftId} for post {postId}, isPublished={isPublished}");
-                
+
                 // Update the draft
                 cmd = new NpgsqlCommand(SqlQueries.UpdateDraftSql, conn, transaction);
                 cmd.Parameters.AddWithValue("draft_id", int.Parse(draftId));
