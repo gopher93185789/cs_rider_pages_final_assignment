@@ -4,7 +4,7 @@
 
 - [x] In memory key value store with expiry
 - [x] auth - login / logout for admins only
-  - [ ] auth token in cookie
+  - [x] auth token in cookie
 - [ ] Blog posts
   - [x] user role can read posts and add comments but they are not visible to other users yet
   - [x] admin can create posts and drafts

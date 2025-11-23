@@ -4,8 +4,6 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs_rider_pages_final_assignment", "cs_rider_pages_final_assignment.csproj", "{67F6CAB2-E9EC-0613-8192-3526F1C4F953}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "database", "database\database.csproj", "{5D2C7CAA-D63E-7440-65F5-3727EF6D6D5B}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cache", "cache\cache.csproj", "{5E5F3801-EF38-211D-CFFF-AF3682D7EAE4}"
 EndProject
 Global
@@ -18,10 +16,6 @@ Global
 		{67F6CAB2-E9EC-0613-8192-3526F1C4F953}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{67F6CAB2-E9EC-0613-8192-3526F1C4F953}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{67F6CAB2-E9EC-0613-8192-3526F1C4F953}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5D2C7CAA-D63E-7440-65F5-3727EF6D6D5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5D2C7CAA-D63E-7440-65F5-3727EF6D6D5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5D2C7CAA-D63E-7440-65F5-3727EF6D6D5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5D2C7CAA-D63E-7440-65F5-3727EF6D6D5B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5E5F3801-EF38-211D-CFFF-AF3682D7EAE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5E5F3801-EF38-211D-CFFF-AF3682D7EAE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5E5F3801-EF38-211D-CFFF-AF3682D7EAE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
