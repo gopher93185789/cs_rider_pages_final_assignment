@@ -101,3 +101,8 @@ ScaffoldingReadMe.txt
 *.ldf
 
 .DS_store
+
+# Environment variables
+.env
+.env.local
+.env.*.local

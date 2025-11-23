@@ -1,0 +1,128 @@
+@page
+@model LoginModel
+@{
+    ViewData["Title"] = "Admin Login";
+}
+
+<style>
+    .login-container {
+        max-width: 400px;
+        margin: 4rem auto;
+    }
+
+    .login-card {
+        padding: 2rem;
+        background-color: var(--color-bg-light);
+        border: 1px solid var(--color-border);
+        border-radius: 0.5rem;
+    }
+
+    .login-title {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: var(--color-bg-dark);
+        border: 1px solid var(--color-border);
+        border-radius: 0.25rem;
+        color: var(--color-text);
+        font-size: 0.9rem;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--color-accent);
+    }
+
+    .submit-btn {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: var(--color-accent);
+        border: 1px solid var(--color-accent);
+        border-radius: 0.25rem;
+        color: white;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .submit-btn:hover {
+        background-color: var(--color-accent-hover);
+    }
+
+    .error-message {
+        padding: 1rem;
+        background-color: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 0.25rem;
+        color: #ef4444;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    .back-link {
+        display: block;
+        text-align: center;
+        margin-top: 1.5rem;
+        color: var(--color-text-muted);
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="login-container">
+    <div class="login-card">
+        <h1 class="login-title">Admin Login</h1>
+        
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="error-message">@Model.ErrorMessage</div>
+        }
+        
+        <form method="post">
+            <div class="form-group">
+                <label class="form-label" for="username">Username</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    class="form-input" 
+                    required 
+                    autofocus
+                />
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    class="form-input" 
+                    required
+                />
+            </div>
+            
+            <button type="submit" class="submit-btn">Login</button>
+        </form>
+        
+        <div class="form-links" style="display: flex; justify-content: space-between; margin-top: 1.5rem; font-size: 0.9rem;">
+            <a href="/Signup" style="color: var(--color-text-muted);">Don't have an account? Sign up</a>
+            <a href="/" style="color: var(--color-text-muted);">← Back to blog</a>
+        </div>
+    </div>
+</div>

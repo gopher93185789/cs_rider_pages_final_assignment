@@ -1,0 +1,333 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Blog Posts";
+}
+
+<style>
+    .filters-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background-color: var(--color-bg-light);
+        border: 1px solid var(--color-border);
+        border-radius: 0.5rem;
+    }
+
+    .filter-group {
+        margin-bottom: 1rem;
+    }
+
+    .filter-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .filter-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+    }
+
+    .search-box {
+        margin-bottom: 1rem;
+    }
+
+    .search-form input {
+        width: 100%;
+    }
+
+    .tags-filter {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .tag-filter-btn {
+        padding: 0.4rem 0.8rem;
+        background-color: var(--color-bg-dark);
+        border: 1px solid var(--color-border);
+        border-radius: 0.25rem;
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .tag-filter-btn:hover {
+        border-color: var(--color-accent);
+        color: var(--color-accent);
+    }
+
+    .tag-filter-btn.active {
+        background-color: var(--color-accent);
+        border-color: var(--color-accent);
+        color: white;
+    }
+
+    .clear-filters {
+        margin-top: 1rem;
+    }
+
+    .post-list {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .post-card {
+        padding: 1.5rem;
+        background-color: var(--color-bg-light);
+        border: 1px solid var(--color-border);
+        border-radius: 0.5rem;
+        transition: border-color 0.2s;
+    }
+
+    .post-card:hover {
+        border-color: var(--color-accent);
+    }
+
+    .post-title {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .post-title a {
+        color: var(--color-text);
+    }
+
+    .post-meta {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+        color: var(--color-text-muted);
+    }
+
+    .post-tags {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+
+    .tag {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background-color: var(--color-bg-dark);
+        border: 1px solid var(--color-border);
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+    }
+
+    .post-excerpt {
+        color: var(--color-text-muted);
+        line-height: 1.7;
+    }
+
+    .no-posts {
+        text-align: center;
+        padding: 3rem;
+        color: var(--color-text-muted);
+    }
+
+    .post-image {
+        width: 100%;
+        height: auto;
+        border-radius: 0.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .post-card.hidden {
+        display: none;
+    }
+</style>
+
+<div class="filters-section">
+    <div class="filter-group">
+        <label class="filter-label">Search</label>
+        <div class="search-box">
+            <input 
+                type="search" 
+                id="searchInput"
+                placeholder="Search posts..." 
+                value="@Model.SearchQuery" 
+            />
+        </div>
+    </div>
+
+    <div class="filter-group">
+        <label class="filter-label">Filter by tags</label>
+        <div class="tags-filter" id="tagsFilter">
+            <!-- Tags will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <div class="clear-filters">
+        <button type="button" class="btn" id="clearFilters">Clear all filters</button>
+    </div>
+</div>
+
+@if (Model.Posts != null && Model.Posts.Count > 0)
+{
+    <div class="post-list" id="postsList">
+        @foreach (var post in Model.Posts)
+        {
+            var publishedDraft = post.Drafts?.FirstOrDefault(d => d.DraftState == "published" && !d.IsDeleted);
+            if (publishedDraft != null)
+            {
+                var postSlug = post.PostID;
+                var excerpt = publishedDraft.Body?.Length > 300 
+                    ? publishedDraft.Body.Substring(0, 300) + "..." 
+                    : publishedDraft.Body;
+                var tagsJson = publishedDraft.Tags != null ? string.Join(",", publishedDraft.Tags) : "";
+                
+                <article class="post-card" data-tags="@tagsJson" data-title="@post.Title" data-body="@publishedDraft.Body">
+                    <a href="/posts/@postSlug" style="text-decoration: none; color: inherit; display: block;">
+                        @if (publishedDraft.assets != null && publishedDraft.assets.Count > 0)
+                        {
+                            var firstImage = publishedDraft.assets.FirstOrDefault(a => a.AssetType?.StartsWith("image/") == true);
+                            if (firstImage?.Data != null)
+                            {
+                                <img src="data:@firstImage.AssetType;base64,@Convert.ToBase64String(firstImage.Data)" 
+                                     alt="@post.Title" 
+                                     class="post-image" />
+                            }
+                        }
+                        
+                        <h2 class="post-title">
+                            @post.Title
+                        </h2>
+                    
+                        <div class="post-meta">
+                            <span>@post.CreatedAt?.ToString("MMMM dd, yyyy")</span>
+                            @if (post.Comments != null && post.Comments.Count > 0)
+                            {
+                                <span>@post.Comments.Count comments</span>
+                            }
+                        </div>
+                        
+                        <div class="post-excerpt">
+                            @excerpt
+                        </div>
+                    </a>
+                    
+                    @if (publishedDraft.Tags != null && publishedDraft.Tags.Length > 0)
+                    {
+                        <div class="post-tags">
+                            @foreach (var tag in publishedDraft.Tags)
+                            {
+                                <span class="tag" style="cursor: pointer;" onclick="event.stopPropagation(); window.location.href='/Tags?tag=@Uri.EscapeDataString(tag)'">@tag</span>
+                            }
+                        </div>
+                    }
+                </article>
+            }
+        }
+    </div>
+}
+else
+{
+    <div class="no-posts">
+        <p>No posts found.</p>
+    </div>
+}
+
+<script>
+    const allTags = new Set();
+    const postCards = document.querySelectorAll('.post-card');
+    const searchInput = document.getElementById('searchInput');
+    const tagsFilter = document.getElementById('tagsFilter');
+    const clearFiltersBtn = document.getElementById('clearFilters');
+    let activeTags = new Set();
+
+    // collect all unique tags
+    postCards.forEach(card => {
+        const tags = card.dataset.tags;
+        if (tags) {
+            tags.split(',').forEach(tag => {
+                if (tag.trim()) allTags.add(tag.trim());
+            });
+        }
+    });
+
+    // render tag filter buttons
+    function renderTagButtons() {
+        tagsFilter.innerHTML = '';
+        if (allTags.size === 0) {
+            tagsFilter.innerHTML = '<span style="color: var(--color-text-muted); font-size: 0.9rem;">No tags available</span>';
+            return;
+        }
+        
+        Array.from(allTags).sort().forEach(tag => {
+            const btn = document.createElement('button');
+            btn.className = 'tag-filter-btn';
+            btn.textContent = tag;
+            btn.dataset.tag = tag;
+            btn.addEventListener('click', () => toggleTag(tag));
+            tagsFilter.appendChild(btn);
+        });
+    }
+
+    // toggle tag selection
+    function toggleTag(tag) {
+        if (activeTags.has(tag)) {
+            activeTags.delete(tag);
+        } else {
+            activeTags.add(tag);
+        }
+        updateTagButtons();
+        filterPosts();
+    }
+
+    // update tag button states
+    function updateTagButtons() {
+        document.querySelectorAll('.tag-filter-btn').forEach(btn => {
+            if (activeTags.has(btn.dataset.tag)) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+
+    // filter posts based on search and tags
+    function filterPosts() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        
+        postCards.forEach(card => {
+            const title = (card.dataset.title || '').toLowerCase();
+            const body = (card.dataset.body || '').toLowerCase();
+            const cardTags = card.dataset.tags ? card.dataset.tags.split(',').map(t => t.trim()) : [];
+            
+            // check search match
+            const matchesSearch = !searchTerm || 
+                title.includes(searchTerm) || 
+                body.includes(searchTerm);
+            
+            // check tag match (if any tags selected, post must have at least one)
+            const matchesTags = activeTags.size === 0 || 
+                Array.from(activeTags).some(tag => cardTags.includes(tag));
+            
+            if (matchesSearch && matchesTags) {
+                card.classList.remove('hidden');
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+    }
+
+    // clear all filters
+    clearFiltersBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        activeTags.clear();
+        updateTagButtons();
+        filterPosts();
+    });
+
+    // search input listener
+    searchInput.addEventListener('input', filterPosts);
+
+    // initialize
+    renderTagButtons();
+</script>

@@ -1,0 +1,215 @@
+@page
+@model TagsModel
+@{
+    ViewData["Title"] = "Browse by Tags";
+}
+
+<style>
+    .tags-header {
+        margin-bottom: 2rem;
+    }
+
+    .tags-header h1 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .tags-cloud {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 1.5rem;
+        background-color: var(--color-bg-light);
+        border: 1px solid var(--color-border);
+        border-radius: 0.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .tag-item {
+        padding: 0.5rem 1rem;
+        background-color: var(--color-bg-dark);
+        border: 1px solid var(--color-border);
+        border-radius: 0.25rem;
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .tag-item:hover {
+        border-color: var(--color-accent);
+        color: var(--color-accent);
+    }
+
+    .tag-item.active {
+        background-color: var(--color-accent);
+        border-color: var(--color-accent);
+        color: white;
+    }
+
+    .selected-tag {
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background-color: var(--color-bg-light);
+        border: 1px solid var(--color-border);
+        border-radius: 0.25rem;
+    }
+
+    .selected-tag-label {
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+        margin-bottom: 0.5rem;
+    }
+
+    .selected-tag-name {
+        font-size: 1.25rem;
+        color: var(--color-accent);
+    }
+
+    .clear-filter {
+        margin-left: 1rem;
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+    }
+
+    .post-list {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .post-card {
+        padding: 1.5rem;
+        background-color: var(--color-bg-light);
+        border: 1px solid var(--color-border);
+        border-radius: 0.5rem;
+        transition: border-color 0.2s;
+    }
+
+    .post-card:hover {
+        border-color: var(--color-accent);
+    }
+
+    .post-title {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .post-title a {
+        color: var(--color-text);
+    }
+
+    .post-meta {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+        color: var(--color-text-muted);
+    }
+
+    .post-tags {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+
+    .tag {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background-color: var(--color-bg-dark);
+        border: 1px solid var(--color-border);
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+    }
+
+    .post-excerpt {
+        color: var(--color-text-muted);
+        line-height: 1.7;
+    }
+
+    .no-posts {
+        text-align: center;
+        padding: 3rem;
+        color: var(--color-text-muted);
+    }
+</style>
+
+<div class="tags-header">
+    <h1>Browse by Tags</h1>
+</div>
+
+@if (Model.AllTags.Count > 0)
+{
+    <div class="tags-cloud">
+        @foreach (var tag in Model.AllTags)
+        {
+            var isActive = tag == Model.SelectedTag;
+            <a href="/Tags?tag=@Uri.EscapeDataString(tag)" 
+               class="tag-item @(isActive ? "active" : "")">
+                @tag
+            </a>
+        }
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.SelectedTag))
+{
+    <div class="selected-tag">
+        <div class="selected-tag-label">Showing posts tagged with:</div>
+        <span class="selected-tag-name">@Model.SelectedTag</span>
+        <a href="/Tags" class="clear-filter">Clear filter</a>
+    </div>
+}
+
+@if (Model.Posts != null && Model.Posts.Count > 0)
+{
+    <div class="post-list">
+        @foreach (var post in Model.Posts)
+        {
+            var publishedDraft = post.Drafts?.FirstOrDefault(d => d.DraftState == "published" && !d.IsDeleted);
+            if (publishedDraft != null)
+            {
+                var postSlug = post.PostID;
+                var excerpt = publishedDraft.Body?.Length > 200 
+                    ? publishedDraft.Body.Substring(0, 200) + "..." 
+                    : publishedDraft.Body;
+                
+                <article class="post-card">
+                    <h2 class="post-title">
+                        <a href="/posts/@postSlug">@post.Title</a>
+                    </h2>
+                    
+                    <div class="post-meta">
+                        <span>@post.CreatedAt?.ToString("MMMM dd, yyyy")</span>
+                        @if (post.Comments != null && post.Comments.Count > 0)
+                        {
+                            <span>@post.Comments.Count comments</span>
+                        }
+                    </div>
+                    
+                    <div class="post-excerpt">
+                        @excerpt
+                    </div>
+                    
+                    @if (publishedDraft.Tags != null && publishedDraft.Tags.Length > 0)
+                    {
+                        <div class="post-tags">
+                            @foreach (var tag in publishedDraft.Tags)
+                            {
+                                <a href="/Tags?tag=@Uri.EscapeDataString(tag)" class="tag">@tag</a>
+                            }
+                        </div>
+                    }
+                </article>
+            }
+        }
+    </div>
+}
+else
+{
+    <div class="no-posts">
+        <p>@(string.IsNullOrEmpty(Model.SelectedTag) ? "No posts found." : $"No posts found with tag '{Model.SelectedTag}'.")</p>
+    </div>
+}

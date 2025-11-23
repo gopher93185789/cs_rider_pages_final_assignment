@@ -1,0 +1,302 @@
+@page
+@model cs_rider_pages_final_assignment.Pages.Admin.EditPostModel
+@{
+    ViewData["Title"] = Model.PostId != null ? "Edit Post" : "New Post";
+}
+
+<style>
+    .editor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .editor-title {
+        font-size: 2rem;
+    }
+
+    .editor-form {
+        max-width: 800px;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: var(--color-bg-light);
+        border: 1px solid var(--color-border);
+        border-radius: 0.25rem;
+        color: var(--color-text);
+        font-size: 0.9rem;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--color-accent);
+    }
+
+    .form-textarea {
+        min-height: 300px;
+        font-family: monospace;
+        resize: vertical;
+    }
+
+    .form-checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-checkbox {
+        width: auto;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .error-message {
+        padding: 1rem;
+        background-color: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 0.25rem;
+        color: #ef4444;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    .help-text {
+        margin-top: 0.25rem;
+        font-size: 0.85rem;
+        color: var(--color-text-muted-extra);
+    }
+
+    .editor-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .editor-panel {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .editor-panel h3 {
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+        margin-bottom: 0.5rem;
+    }
+
+    .markdown-preview {
+        padding: 0.75rem;
+        background-color: var(--color-bg-light);
+        border: 1px solid var(--color-border);
+        border-radius: 0.25rem;
+        min-height: 300px;
+        color: var(--color-text-muted);
+        overflow-y: auto;
+        line-height: 1.7;
+    }
+
+    .markdown-preview h1 {
+        font-size: 2rem;
+        margin: 1rem 0 0.5rem 0;
+    }
+
+    .markdown-preview h2 {
+        font-size: 1.5rem;
+        margin: 1rem 0 0.5rem 0;
+    }
+
+    .markdown-preview h3 {
+        font-size: 1.25rem;
+        margin: 1rem 0 0.5rem 0;
+    }
+
+    .markdown-preview p {
+        margin: 0.5rem 0;
+    }
+
+    .markdown-preview code {
+        background-color: var(--color-bg-dark);
+        padding: 0.2rem 0.4rem;
+        border-radius: 0.25rem;
+        font-family: monospace;
+        font-size: 0.9em;
+    }
+
+    .markdown-preview pre {
+        background-color: var(--color-bg-dark);
+        padding: 1rem;
+        border-radius: 0.25rem;
+        overflow-x: auto;
+        margin: 0.5rem 0;
+    }
+
+    .markdown-preview pre code {
+        background: none;
+        padding: 0;
+    }
+
+    .markdown-preview ul, .markdown-preview ol {
+        margin: 0.5rem 0;
+        padding-left: 2rem;
+    }
+
+    .markdown-preview blockquote {
+        border-left: 3px solid var(--color-accent);
+        padding-left: 1rem;
+        margin: 0.5rem 0;
+        color: var(--color-text-muted-extra);
+    }
+
+    .markdown-preview a {
+        color: var(--color-accent);
+    }
+
+    .markdown-preview img {
+        max-width: 100%;
+        height: auto;
+        margin: 0.5rem 0;
+    }
+
+    .markdown-preview hr {
+        border: none;
+        border-top: 1px solid var(--color-border);
+        margin: 1rem 0;
+    }
+
+    @@media (max-width: 768px) {
+        .editor-container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="editor-header">
+    <h1 class="editor-title">@(Model.PostId != null ? "Edit Post" : "New Post")</h1>
+    <a href="/Admin" class="btn">← Back to Dashboard</a>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="error-message">@Model.ErrorMessage</div>
+}
+
+<form method="post" class="editor-form">
+    <input type="hidden" asp-for="PostId" />
+    <input type="hidden" asp-for="DraftId" />
+    
+    <div class="form-group">
+        <label class="form-label" for="title">Title</label>
+        <input 
+            type="text" 
+            id="title" 
+            asp-for="Title"
+            class="form-input" 
+            required 
+            autofocus
+        />
+    </div>
+    
+    <div class="form-group">
+        <label class="form-label" for="publishDate">Publish Date</label>
+        <input 
+            type="datetime-local" 
+            id="publishDate" 
+            asp-for="PublishDate"
+            class="form-input" 
+            required
+        />
+        <p class="help-text">Post will only be visible to users after this date</p>
+    </div>
+    
+    <div class="form-group">
+        <label class="form-label" for="tags">Tags</label>
+        <input 
+            type="text" 
+            id="tags" 
+            asp-for="Tags"
+            class="form-input" 
+            placeholder="tech, programming, web"
+        />
+        <p class="help-text">Separate tags with commas</p>
+    </div>
+    
+    <div class="form-group">
+        <label class="form-label">Body (Markdown supported)</label>
+        <div class="editor-container">
+            <div class="editor-panel">
+                <h3>Editor</h3>
+                <textarea 
+                    id="body" 
+                    asp-for="Body"
+                    class="form-input form-textarea" 
+                    required
+                ></textarea>
+            </div>
+            <div class="editor-panel">
+                <h3>Preview</h3>
+                <div id="preview" class="markdown-preview"></div>
+            </div>
+        </div>
+        <p class="help-text">Supports **bold**, *italic*, `code`, # headings, - lists, [links](url), ![images](url), etc.</p>
+    </div>
+    
+    <div class="form-group">
+        <div class="form-checkbox-group">
+            <input type="hidden" asp-for="IsPublished" value="false" />
+            <input 
+                type="checkbox" 
+                id="isPublished" 
+                asp-for="IsPublished"
+                class="form-checkbox"
+                value="true"
+            />
+            <label class="form-label" for="isPublished" style="margin: 0;">Publish this draft</label>
+        </div>
+        <p class="help-text">Uncheck to save as draft without publishing</p>
+    </div>
+    
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+            @(Model.PostId != null ? "Update Post" : "Create Post")
+        </button>
+        <a href="/Admin" class="btn">Cancel</a>
+    </div>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    const bodyTextarea = document.getElementById('body');
+    const preview = document.getElementById('preview');
+
+    function updatePreview() {
+        const markdown = bodyTextarea.value;
+        preview.innerHTML = marked.parse(markdown);
+    }
+
+    bodyTextarea.addEventListener('input', updatePreview);
+    
+    // initial preview
+    if (bodyTextarea.value) {
+        updatePreview();
+    }
+</script>

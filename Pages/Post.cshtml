@@ -1,0 +1,236 @@
+@page "/posts/{id}"
+@model PostModel
+@{
+    ViewData["Title"] = Model.Post?.Title ?? "Post";
+}
+
+<style>
+    .post-header {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .post-title {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        line-height: 1.2;
+    }
+
+    .post-meta {
+        display: flex;
+        gap: 1.5rem;
+        color: var(--color-text-muted);
+        font-size: 0.9rem;
+    }
+
+    .post-tags {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+
+    .tag {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background-color: var(--color-bg-dark);
+        border: 1px solid var(--color-border);
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+    }
+
+    .post-content {
+        margin-bottom: 3rem;
+        line-height: 1.8;
+        color: var(--color-text-muted);
+        white-space: pre-wrap;
+    }
+
+    .post-image {
+        width: 100%;
+        height: auto;
+        border-radius: 0.5rem;
+        margin: 1.5rem 0;
+    }
+
+    .comments-section {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--color-border);
+    }
+
+    .comments-title {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .comment {
+        padding: 1rem;
+        background-color: var(--color-bg-light);
+        border: 1px solid var(--color-border);
+        border-radius: 0.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .comment-text {
+        color: var(--color-text-muted);
+    }
+
+    .comment-form {
+        margin-top: 2rem;
+    }
+
+    .comment-form textarea {
+        min-height: 120px;
+        margin-bottom: 1rem;
+    }
+
+    .error-message {
+        padding: 1rem;
+        background-color: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 0.25rem;
+        color: #ef4444;
+        margin-bottom: 1rem;
+    }
+
+    .success-message {
+        padding: 1rem;
+        background-color: rgba(34, 197, 94, 0.1);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        border-radius: 0.25rem;
+        color: #22c55e;
+        margin-bottom: 1rem;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-bottom: 2rem;
+        color: var(--color-text-muted);
+        font-size: 0.9rem;
+    }
+
+    .back-link:hover {
+        color: var(--color-accent);
+    }
+</style>
+
+<a href="/" class="back-link">← Back to posts</a>
+
+@if (Model.Post != null)
+{
+    var publishedDraft = Model.Post.Drafts?.FirstOrDefault(d => d.DraftState == "published" && !d.IsDeleted);
+    
+    if (publishedDraft != null)
+    {
+        <article>
+            <header class="post-header">
+                <h1 class="post-title">@Model.Post.Title</h1>
+                
+                <div class="post-meta">
+                    <span>@Model.Post.CreatedAt?.ToString("MMMM dd, yyyy")</span>
+                    @if (Model.Post.Comments != null && Model.Post.Comments.Count > 0)
+                    {
+                        <span>@Model.Post.Comments.Count comments</span>
+                    }
+                </div>
+                
+                @if (publishedDraft.Tags != null && publishedDraft.Tags.Length > 0)
+                {
+                    <div class="post-tags">
+                        @foreach (var tag in publishedDraft.Tags)
+                        {
+                            <a href="/Tags?tag=@Uri.EscapeDataString(tag)" class="tag">@tag</a>
+                        }
+                    </div>
+                }
+            </header>
+            
+            @if (publishedDraft.assets != null && publishedDraft.assets.Count > 0)
+            {
+                foreach (var asset in publishedDraft.assets)
+                {
+                    if (asset.AssetType?.StartsWith("image/") == true && asset.Data != null)
+                    {
+                        <img src="data:@asset.AssetType;base64,@Convert.ToBase64String(asset.Data)" 
+                             alt="@Model.Post.Title" 
+                             class="post-image" />
+                    }
+                }
+            }
+            
+            <div class="post-content" id="postContent"></div>
+        </article>
+        
+        <section class="comments-section">
+            <h2 class="comments-title">Comments</h2>
+            
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="error-message">@Model.ErrorMessage</div>
+            }
+            
+            @if (Model.Post.Comments != null && Model.Post.Comments.Count > 0)
+            {
+                var approvedComments = Model.Post.Comments.Where(c => c.status == "approved").ToList();
+                @if (approvedComments.Count > 0)
+                {
+                    <div class="comments-list">
+                        @foreach (var comment in approvedComments)
+                        {
+                            <div class="comment">
+                                <p class="comment-text">@comment.comment</p>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p style="color: var(--color-text-muted);">No comments yet. Be the first to comment!</p>
+                }
+            }
+            else
+            {
+                <p style="color: var(--color-text-muted);">No comments yet. Be the first to comment!</p>
+            }
+            
+            <form method="post" class="comment-form">
+                <textarea 
+                    name="comment" 
+                    placeholder="Write your comment here..."
+                    required></textarea>
+                <button type="submit" class="btn btn-primary">Submit Comment</button>
+            </form>
+        </section>
+    }
+    else
+    {
+        <div class="no-posts">
+            <p>This post is not published yet.</p>
+        </div>
+    }
+}
+else
+{
+    <div class="no-posts">
+        <p>Post not found.</p>
+    </div>
+}
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    @if (Model.Post != null)
+    {
+        var publishedDraft = Model.Post.Drafts?.FirstOrDefault(d => d.DraftState == "published" && !d.IsDeleted);
+        if (publishedDraft != null)
+        {
+            <text>
+            const postContent = document.getElementById('postContent');
+            const markdown = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(publishedDraft.Body ?? ""));
+            postContent.innerHTML = marked.parse(markdown);
+            </text>
+        }
+    }
+</script>

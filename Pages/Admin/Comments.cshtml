@@ -1,0 +1,189 @@
+@page
+@model cs_rider_pages_final_assignment.Pages.Admin.CommentsModel
+@{
+    ViewData["Title"] = "Moderate Comments";
+}
+
+<style>
+    .comments-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .comments-title {
+        font-size: 2rem;
+    }
+
+    .post-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background-color: var(--color-bg-light);
+        border: 1px solid var(--color-border);
+        border-radius: 0.5rem;
+    }
+
+    .post-section-title {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        color: var(--color-text);
+    }
+
+    .comment-card {
+        padding: 1rem;
+        background-color: var(--color-bg-dark);
+        border: 1px solid var(--color-border);
+        border-radius: 0.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .comment-card:last-child {
+        margin-bottom: 0;
+    }
+
+    .comment-text {
+        margin-bottom: 1rem;
+        color: var(--color-text-muted);
+        line-height: 1.6;
+    }
+
+    .comment-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .comment-status {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .comment-status.pending {
+        background-color: rgba(234, 179, 8, 0.1);
+        border: 1px solid rgba(234, 179, 8, 0.3);
+        color: #eab308;
+    }
+
+    .comment-status.approved {
+        background-color: rgba(34, 197, 94, 0.1);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        color: #22c55e;
+    }
+
+    .comment-status.rejected {
+        background-color: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+    }
+
+    .comment-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-small {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+    }
+
+    .btn-success {
+        background-color: rgba(34, 197, 94, 0.1);
+        border-color: rgba(34, 197, 94, 0.3);
+        color: #22c55e;
+    }
+
+    .btn-success:hover {
+        background-color: rgba(34, 197, 94, 0.2);
+    }
+
+    .btn-danger {
+        background-color: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+    }
+
+    .btn-danger:hover {
+        background-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .no-comments {
+        padding: 3rem;
+        text-align: center;
+        color: var(--color-text-muted);
+    }
+</style>
+
+<div class="comments-header">
+    <h1 class="comments-title">Moderate Comments</h1>
+    <a href="/Admin" class="btn">← Back to Dashboard</a>
+</div>
+
+@if (Model.Posts != null && Model.Posts.Count > 0)
+{
+    @foreach (var post in Model.Posts)
+    {
+        <div class="post-section">
+            <h2 class="post-section-title">
+                <a href="/posts/@post.PostID" target="_blank">@post.Title</a>
+            </h2>
+            
+            @if (post.Comments != null)
+            {
+                @foreach (var comment in post.Comments)
+                {
+                    <div class="comment-card">
+                        <div class="comment-text">
+                            @comment.comment
+                        </div>
+                        
+                        <div class="comment-footer">
+                            <span class="comment-status @comment.status">
+                                @comment.status
+                            </span>
+                            
+                            @if (comment.status == "pending")
+                            {
+                                <div class="comment-actions">
+                                    <form method="post" asp-page-handler="Approve" asp-route-commentId="@comment.commentId" style="display: inline;">
+                                        <button type="submit" class="btn btn-small btn-success">Approve</button>
+                                    </form>
+                                    <form method="post" asp-page-handler="Reject" asp-route-commentId="@comment.commentId" style="display: inline;">
+                                        <button type="submit" class="btn btn-small btn-danger">Reject</button>
+                                    </form>
+                                </div>
+                            }
+                            else if (comment.status == "approved")
+                            {
+                                <div class="comment-actions">
+                                    <form method="post" asp-page-handler="Reject" asp-route-commentId="@comment.commentId" style="display: inline;">
+                                        <button type="submit" class="btn btn-small btn-danger">Reject</button>
+                                    </form>
+                                </div>
+                            }
+                            else if (comment.status == "rejected")
+                            {
+                                <div class="comment-actions">
+                                    <form method="post" asp-page-handler="Approve" asp-route-commentId="@comment.commentId" style="display: inline;">
+                                        <button type="submit" class="btn btn-small btn-success">Approve</button>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    }
+}
+else
+{
+    <div class="no-comments">
+        <p>No comments to moderate.</p>
+    </div>
+}

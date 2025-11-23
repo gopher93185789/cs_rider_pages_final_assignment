@@ -1,0 +1,190 @@
+@page
+@model cs_rider_pages_final_assignment.Pages.Admin.IndexModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<style>
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .admin-title {
+        font-size: 2rem;
+    }
+
+    .admin-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .posts-table {
+        width: 100%;
+        background-color: var(--color-bg-light);
+        border: 1px solid var(--color-border);
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    .posts-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .posts-table th {
+        padding: 1rem;
+        text-align: left;
+        background-color: var(--color-bg-dark);
+        border-bottom: 1px solid var(--color-border);
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+        font-weight: 600;
+    }
+
+    .posts-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--color-border);
+        font-size: 0.9rem;
+    }
+
+    .posts-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .posts-table tr:hover {
+        background-color: var(--color-bg-dark);
+    }
+
+    .draft-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        background-color: var(--color-bg-dark);
+        border: 1px solid var(--color-border);
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        margin-left: 0.5rem;
+    }
+
+    .draft-badge.published {
+        background-color: rgba(34, 197, 94, 0.1);
+        border-color: rgba(34, 197, 94, 0.3);
+        color: #22c55e;
+    }
+
+    .draft-badge.draft {
+        background-color: rgba(234, 179, 8, 0.1);
+        border-color: rgba(234, 179, 8, 0.3);
+        color: #eab308;
+    }
+
+    .table-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-small {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+    }
+
+    .btn-danger {
+        background-color: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+    }
+
+    .btn-danger:hover {
+        background-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .no-posts {
+        padding: 3rem;
+        text-align: center;
+        color: var(--color-text-muted);
+    }
+</style>
+
+<div class="admin-header">
+    <h1 class="admin-title">Admin Dashboard</h1>
+    <div class="admin-actions">
+        <a href="/Admin/EditPost" class="btn btn-primary">New Post</a>
+        <a href="/Admin/Comments" class="btn">Comments</a>
+        <form method="post" asp-page-handler="Logout" style="display: inline;">
+            <button type="submit" class="btn">Logout</button>
+        </form>
+    </div>
+</div>
+
+@if (Model.Posts != null && Model.Posts.Count > 0)
+{
+    <div class="posts-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Publish Date</th>
+                    <th>Comments</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var post in Model.Posts)
+                {
+                    var publishedDraft = post.Drafts?.FirstOrDefault(d => d.DraftState == "published");
+                    var draftCount = post.Drafts?.Count(d => d.DraftState == "draft") ?? 0;
+                    var hasPublished = publishedDraft != null;
+                    var commentCount = post.Comments?.Count ?? 0;
+                    var pendingComments = post.Comments?.Count(c => c.status == "pending") ?? 0;
+                    
+                    <tr>
+                        <td>
+                            <a href="/posts/@post.PostID" target="_blank" style="color: var(--color-text);">
+                                @post.Title
+                            </a>
+                        </td>
+                        <td>
+                            @if (hasPublished)
+                            {
+                                <span class="draft-badge published">Published</span>
+                            }
+                            @if (draftCount > 0)
+                            {
+                                <span class="draft-badge draft">@draftCount Draft@(draftCount > 1 ? "s" : "")</span>
+                            }
+                        </td>
+                        <td style="color: var(--color-text-muted);">
+                            @post.CreatedAt?.ToString("MMM dd, yyyy")
+                        </td>
+                        <td style="color: var(--color-text-muted);">
+                            @commentCount
+                            @if (pendingComments > 0)
+                            {
+                                <span style="color: var(--color-accent);">(@pendingComments pending)</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="table-actions">
+                                <a href="/Admin/EditPost?id=@post.PostID" class="btn btn-small">Edit</a>
+                                <form method="post" asp-page-handler="Delete" asp-route-postId="@post.PostID" style="display: inline;">
+                                    <button type="submit" class="btn btn-small btn-danger" onclick="return confirm('Delete this post?');">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="no-posts">
+        <p>No posts yet. Create your first post!</p>
+    </div>
+}
