@@ -214,8 +214,8 @@ namespace Core {
                         for (int i = 0; i < commentIds.Length; i++) {
                             var c = new Comment();
                             c.commentId = commentIds[i];
-                            c.comment = comments[i];
-                            c.status = commentStatus[i];
+                            c.comment = comments?[i];
+                            c.status = commentStatus?[i];
 
                             p.Comments.Add(c);
                         }

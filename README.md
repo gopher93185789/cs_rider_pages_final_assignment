@@ -1,29 +1,45 @@
 # cs_rider_pages_final_assignment
 
-## Req
+Dit is een volledig functionele blog-applicatie gebouwd met ASP.NET Core Razor Pages, PostgreSQL en Docker.
 
-- [x] In memory key value store with expiry
-- [x] auth - login / logout for admins only
-  - [x] auth token in cookie
+## Snel Starten met Docker
+
+```bash
+# Start de applicatie
+./start.sh
+
+# Of handmatig
+docker compose up --build -d
+```
+
+Toegang tot de applicatie via **http://localhost:8080**
+
+Voor gedetailleerde Docker instructies, zie [DOCKER.md](DOCKER.md)
+
+## Vereisten
+
+- [x] In-memory key-value store met vervaldatum
+- [x] Authenticatie - login/logout alleen voor admins
+  - [x] Auth token in cookie
 - [x] Blog posts
-  - [x] user role can read posts and add comments but they are not visible to other users yet
-  - [x] admin can create posts and drafts
-  - [x] admin can update posts
-  - [x] admin can delete posts
-  - [x] admin needs to approve user comments to be visible under post
-  - [x] post needs to have tags, title, body, image
-  - [x] post can have muliple versions. one published and muli draft
-    - [x] posts scheduler
-    - [x] admin can set when a post will be posted/visible to users
-    - [x] users can filter posts by tags (client-side filtering)
-- [x] full text search posts (can be done in postgres)
-- [x] navigate through posts using slugs /posts/:id
-- [x] Frontend with Razor Pages
-  - [x] minimal dark theme design
-  - [x] home page with client-side search and tag filtering
-  - [x] individual post pages with comments
-  - [x] admin login page
-  - [x] admin dashboard for managing posts
-  - [x] admin page for creating/editing posts
-  - [x] admin page for moderating comments
-  - [x] sitemap.xml generation
+  - [x] Gebruikersrol kan posts lezen en reacties toevoegen, maar deze zijn nog niet zichtbaar voor andere gebruikers
+  - [x] Admin kan posts en concepten aanmaken
+  - [x] Admin kan posts bijwerken
+  - [x] Admin kan posts verwijderen
+  - [x] Admin moet gebruikersreacties goedkeuren om zichtbaar te zijn onder een post
+  - [x] Post moet tags, titel, body en afbeelding hebben
+  - [x] Post kan meerdere versies hebben: een gepubliceerde en meerdere concepten
+    - [x] Posts scheduler
+    - [x] Admin kan instellen wanneer een post gepubliceerd/zichtbaar wordt voor gebruikers
+    - [x] Gebruikers kunnen posts filteren op tags (client-side filtering)
+- [x] Volledige tekstzoekopdracht in posts (uitgevoerd in PostgreSQL)
+- [x] Navigeren door posts met slugs /posts/:id
+- [x] Frontend met Razor Pages
+  - [x] Minimaal donker thema design
+  - [x] Homepagina met client-side zoeken en tag filtering
+  - [x] Individuele post pagina's met reacties
+  - [x] Admin login pagina
+  - [x] Admin dashboard voor het beheren van posts
+  - [x] Admin pagina voor het maken/bewerken van posts
+  - [x] Admin pagina voor het modereren van reacties
+  - [x] sitemap.xml generatie

@@ -236,35 +236,54 @@ app.MapGet("/api/posts/filter", (string? tags) => {
 });
 
 // Sitemap
-app.MapGet("/sitemap.xml", () => {
+app.MapGet("/sitemap.xml", (HttpContext context) => {
     var success = blogCtx.UserGetPosts(null, out string? err, out string? postsJson);
     if (!success || string.IsNullOrEmpty(postsJson)) {
         return Results.NotFound();
     }
 
     var posts = JsonSerializer.Deserialize<List<Post>>(postsJson);
+    var baseUrl = $"{context.Request.Scheme}://{context.Request.Host}";
+
     var sitemap = new System.Text.StringBuilder();
     sitemap.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
     sitemap.AppendLine("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
 
+    // Home page
     sitemap.AppendLine("  <url>");
-    sitemap.AppendLine("    <loc>https://yourdomain.com/</loc>");
+    sitemap.AppendLine($"    <loc>{baseUrl}/</loc>");
     sitemap.AppendLine("    <changefreq>daily</changefreq>");
     sitemap.AppendLine("    <priority>1.0</priority>");
     sitemap.AppendLine("  </url>");
 
+    // Tags page
     sitemap.AppendLine("  <url>");
-    sitemap.AppendLine("    <loc>https://yourdomain.com/Tags</loc>");
+    sitemap.AppendLine($"    <loc>{baseUrl}/Tags</loc>");
     sitemap.AppendLine("    <changefreq>weekly</changefreq>");
     sitemap.AppendLine("    <priority>0.8</priority>");
     sitemap.AppendLine("  </url>");
 
+    // Login page
+    sitemap.AppendLine("  <url>");
+    sitemap.AppendLine($"    <loc>{baseUrl}/Login</loc>");
+    sitemap.AppendLine("    <changefreq>monthly</changefreq>");
+    sitemap.AppendLine("    <priority>0.3</priority>");
+    sitemap.AppendLine("  </url>");
+
+    // Signup page
+    sitemap.AppendLine("  <url>");
+    sitemap.AppendLine($"    <loc>{baseUrl}/Signup</loc>");
+    sitemap.AppendLine("    <changefreq>monthly</changefreq>");
+    sitemap.AppendLine("    <priority>0.3</priority>");
+    sitemap.AppendLine("  </url>");
+
+    // Individual post pages
     if (posts != null) {
         foreach (var post in posts) {
             var publishedDraft = post.Drafts?.FirstOrDefault(d => d.DraftState == "published" && !d.IsDeleted);
             if (publishedDraft != null) {
                 sitemap.AppendLine("  <url>");
-                sitemap.AppendLine($"    <loc>https://yourdomain.com/posts/{post.PostID}</loc>");
+                sitemap.AppendLine($"    <loc>{baseUrl}/Post?id={post.PostID}</loc>");
                 sitemap.AppendLine($"    <lastmod>{post.UpdatedAt?.ToString("yyyy-MM-dd")}</lastmod>");
                 sitemap.AppendLine("    <changefreq>monthly</changefreq>");
                 sitemap.AppendLine("    <priority>0.9</priority>");
