@@ -91,6 +91,10 @@ public class EditPostModel : PageModel {
 
         UserId = userId;
 
+        // Handle checkbox - when unchecked, it won't be in the form data
+        IsPublished = Request.Form["IsPublished"].ToString().ToLower() == "on" || 
+                      Request.Form["IsPublished"].ToString().ToLower() == "true";
+
         if (string.IsNullOrWhiteSpace(Title)) {
             ErrorMessage = "Title is required";
             return Page();

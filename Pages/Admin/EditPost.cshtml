@@ -262,13 +262,12 @@
     
     <div class="form-group">
         <div class="form-checkbox-group">
-            <input type="hidden" asp-for="IsPublished" value="false" />
             <input 
                 type="checkbox" 
                 id="isPublished" 
-                asp-for="IsPublished"
+                name="IsPublished"
                 class="form-checkbox"
-                value="true"
+                @(Model.IsPublished ? "checked" : "")
             />
             <label class="form-label" for="isPublished" style="margin: 0;">Publish this draft</label>
         </div>
